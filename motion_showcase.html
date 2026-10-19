@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlateHound - SOOP Motion Reel</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #090d16;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .viewport {
+    width: 960px;
+    height: 540px;
+    background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 100%);
+    border-radius: 16px;
+    border: 1px solid #334155;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(56, 189, 248, 0.1);
+    overflow: hidden;
+  }
+
+  /* Title Card */
+  .title-badge {
+    position: absolute;
+    top: 24px;
+    left: 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 1px;
+  }
+  .tag {
+    background: #0284c7;
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  /* Scenes Container */
+  .scene {
+    position: absolute;
+    inset: 0;
+    padding: 80px 40px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .scene.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  /* Plate Graphic */
+  .plate-card {
+    width: 380px;
+    height: 190px;
+    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 6px solid #047857;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    color: #064e3b;
+    position: relative;
+  }
+  .plate-header {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .plate-number {
+    font-size: 68px;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 6px;
+    color: #064e3b;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
+  }
+  .plate-footer {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #b91c1c;
+  }
+
+  /* Scanner HUD Overlay */
+  .hud-box {
+    position: absolute;
+    border: 2px dashed #38bdf8;
+    border-radius: 8px;
+    padding: 10px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+    50% { border-color: #22c55e; box-shadow: 0 0 25px rgba(34, 197, 94, 0.5); }
+  }
+
+  /* Vehicle Lead Specs */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 580px;
+    margin-top: 24px;
+  }
+  .spec-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 16px;
+    border-radius: 8px;
+  }
+  .spec-label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .spec-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-top: 4px;
+  }
+
+  /* Progress bar */
+  .timeline-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #38bdf8, #22c55e);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+</style>
+</head>
+<body>
+
+<div class="viewport">
+  <div class="title-badge">
+    <span>🐾 PLATEHOUND</span>
+    <span class="tag">FL ALPR LEADGEN</span>
+  </div>
+
+  <!-- Scene 1: Plate Detection -->
+  <div class="scene active" id="scene1">
+    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 12px; font-weight: 600;">STAGE 1: YOLO + OCR EXTRACTION</div>
+    <div class="hud-box">
+      <div class="plate-card">
+        <div class="plate-header">FLORIDA</div>
+        <div class="plate-number">76BCDE</div>
+        <div class="plate-footer">SUNSHINE STATE</div>
+      </div>
+    </div>
+    <div style="margin-top: 24px; font-size: 16px; color: #4ade80;">✓ OCR Confidence: 96.4% | Format: Valid Florida Standard</div>
+  </div>
+
+  <!-- Scene 2: Public API Enrichment -->
+  <div class="scene" id="scene2">
+    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px; font-weight: 600;">STAGE 2: PUBLIC VEHICLE INFO ENRICHMENT</div>
+    <div class="spec-grid">
+      <div class="spec-item">
+        <div class="spec-label">Vehicle Make</div>
+        <div class="spec-val">FORD</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Model & Trim</div>
+        <div class="spec-val">F-150 SUPERCREW</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Year & Class</div>
+        <div class="spec-val">2021 | Pickup Truck</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Engine & Specs</div>
+        <div class="spec-val">3.5L V6 EcoBoost</div>
+      </div>
+    </div>
+    <div style="margin-top: 16px; font-size: 14px; color: #38bdf8;">✓ Data source: Non-personal public records / PlateQuery</div>
+  </div>
+
+  <!-- Scene 3: Homelab Leads DB -->
+  <div class="scene" id="scene3">
+    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 12px; font-weight: 600;">STAGE 3: LOCAL HOMELAB DATABASE</div>
+    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 20px; width: 620px; font-family: monospace; font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+      <span style="color: #38bdf8;">sqlite></span> SELECT id, plate, year, make, model FROM vehicle_leads;<br>
+      <span style="color: #22c55e;">[RECORD #1]</span> 76BCDE | 2021 | FORD | F-150 | Commercial Fleet Lead<br>
+      <span style="color: #22c55e;">[RECORD #2]</span> ABC123 | 2020 | TOYOTA | CAMRY | South Beach Sighting<br>
+      <span style="color: #22c55e;">[RECORD #3]</span> SUNSHN | 2023 | TESLA | MODEL Y | EV Outreach Qualified<br>
+      <div style="margin-top: 10px; color: #e2e8f0; font-weight: bold;">🎯 Searchable Leads Indexed: 100% Complete</div>
+    </div>
+  </div>
+
+  <div class="timeline-bar" id="bar"></div>
+</div>
+
+<script>
+  let currentScene = 0;
+  const scenes = [
+    document.getElementById("scene1"),
+    document.getElementById("scene2"),
+    document.getElementById("scene3")
+  ];
+  const bar = document.getElementById("bar");
+
+  function loop() {
+    scenes.forEach((s, idx) => {
+      s.classList.toggle("active", idx === currentScene);
+    });
+    bar.style.width = ((currentScene + 1) / scenes.length * 100) + "%";
+    currentScene = (currentScene + 1) % scenes.length;
+  }
+
+  setInterval(loop, 2400);
+</script>
+</body>
+</html>
