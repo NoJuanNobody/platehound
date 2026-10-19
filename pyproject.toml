@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "platehound"
+version = "0.1.0"
+description = "PlateHound: Florida License Plate ALPR, Vehicle Specs Lookup & Leads Database"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "PlateHound Dev Team" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "Pillow>=9.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+platehound = "platehound.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["platehound*"]

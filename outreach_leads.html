@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlateHound // Homelab Outreach Leads Dashboard</title>
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-surface: #111827;
+            --bg-card: #141e33;
+            --bg-card-hover: #192640;
+            --border-color: #23314d;
+            --border-subtle: #1c273e;
+            --text-main: #f3f4f6;
+            --text-muted: #94a3b8;
+            --text-accent: #38bdf8;
+            --color-emerald: #10b981;
+            --color-amber: #f59e0b;
+            --color-cyan: #06b6d4;
+            --color-violet: #a855f7;
+            --color-rose: #f43f5e;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-icon {
+            font-size: 32px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .logo-text h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-text p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .header-meta {
+            text-align: right;
+        }
+        .homelab-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            margin-bottom: 6px;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* KPI Stat Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--text-accent);
+        }
+        .kpi-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .kpi-subtext {
+            font-size: 12px;
+            color: var(--color-emerald);
+            margin-top: 4px;
+        }
+
+        /* Controls: Search and Filters */
+        .controls-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 10px;
+            background: #0d1320;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 14px;
+        }
+        .search-box:focus {
+            border-color: var(--text-accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pill:hover {
+            color: #fff;
+            border-color: var(--text-accent);
+            background: var(--bg-card-hover);
+        }
+        .pill.active {
+            background: #0284c7;
+            color: #fff;
+            border-color: #38bdf8;
+            font-weight: 600;
+        }
+        .pill-count {
+            font-size: 11px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .results-summary {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Leads Grid */
+        .leads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 20px;
+        }
+        .lead-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+        .lead-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        /* Authentic Florida Plate Render */
+        .fl-plate-badge {
+            width: 140px;
+            height: 68px;
+            background: #ffffff;
+            border: 3px solid #1e3a1e;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 6px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+            position: relative;
+        }
+        .fl-plate-header {
+            font-size: 10px;
+            font-weight: 900;
+            color: #15803d;
+            letter-spacing: 1.5px;
+            line-height: 1;
+        }
+        .fl-plate-number {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 20px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: 1.5px;
+            line-height: 1;
+        }
+        .fl-plate-footer {
+            font-size: 8px;
+            font-weight: 800;
+            color: #c2410c;
+            letter-spacing: 0.8px;
+            line-height: 1;
+        }
+
+        .header-badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .badge-segment {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .badge-sightings {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .badge-confidence {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .vehicle-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            gap: 6px;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .title-year {
+            color: var(--text-accent);
+        }
+        .title-body {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            background: var(--bg-card);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            font-size: 12px;
+        }
+        .spec-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .spec-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .spec-value {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        .code-font {
+            font-family: monospace;
+            color: #93c5fd;
+        }
+
+        .notes-box {
+            font-size: 12px;
+            background: rgba(0,0,0,0.25);
+            border-left: 3px solid #3b82f6;
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: #cbd5e1;
+        }
+
+        /* Pitch Box & Copy Button */
+        .pitch-container {
+            background: linear-gradient(145deg, #132238, #0e1726);
+            border: 1px solid #1e3a5f;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .pitch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pitch-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+        .btn-copy {
+            background: #0284c7;
+            color: #fff;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-copy:hover {
+            background: #0369a1;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        }
+        .btn-copy.copied {
+            background: #059669;
+        }
+        .pitch-text {
+            font-size: 13px;
+            color: #e2e8f0;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* Empty state */
+        .no-leads {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .leads-grid {
+                grid-template-columns: 1fr;
+            }
+            .card-header {
+                flex-direction: column;
+            }
+            .header-badges {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon">🐾</div>
+                <div class="logo-text">
+                    <h1>PlateHound Leads Command Center</h1>
+                    <p>Florida ALPR Homelab Vehicle Intelligence & Outreach Pipeline</p>
+                </div>
+            </div>
+            <div class="header-meta">
+                <span class="homelab-badge">● AIR-GAPPED HOMELAB ACTIVE</span>
+                <div class="timestamp">Generated: Oct 19, 2026 - 17:51:19</div>
+            </div>
+        </header>
+
+        <!-- KPI Summary Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Vehicle Leads</div>
+                <div class="kpi-value">8</div>
+                <div class="kpi-subtext">Unique Florida tags in CRM</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Total Sightings</div>
+                <div class="kpi-value">8</div>
+                <div class="kpi-subtext">Cumulative camera detections</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Avg Fleet Year</div>
+                <div class="kpi-value">2020.8</div>
+                <div class="kpi-subtext">Vehicle model year index</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Active Segments</div>
+                <div class="kpi-value">5</div>
+                <div class="kpi-subtext">Lead categorization groups</div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="controls-panel">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Instant search by plate (e.g. 76BCDE), make, model, VIN, notes, or pitch..." oninput="handleSearch()">
+            <div class="filter-pills" id="filterPills">
+                <button class="pill active" data-filter="all" onclick="filterSegment('all', this)">All Leads <span class="pill-count">8</span></button>
+<button class="pill" data-filter="commercial_fleet" onclick="filterSegment('commercial_fleet', this)">COMMERCIAL_FLEET <span class="pill-count">2</span></button>
+<button class="pill" data-filter="ev_solar_home" onclick="filterSegment('ev_solar_home', this)">EV_SOLAR_HOME <span class="pill-count">2</span></button>
+<button class="pill" data-filter="extended_warranty_service" onclick="filterSegment('extended_warranty_service', this)">EXTENDED_WARRANTY_SERVICE <span class="pill-count">1</span></button>
+<button class="pill" data-filter="offroad_accessory" onclick="filterSegment('offroad_accessory', this)">OFFROAD_ACCESSORY <span class="pill-count">1</span></button>
+<button class="pill" data-filter="performance_detail" onclick="filterSegment('performance_detail', this)">PERFORMANCE_DETAIL <span class="pill-count">2</span></button>
+            </div>
+            <div class="results-summary">
+                <span>Showing <strong id="visibleCount">8</strong> of <strong id="totalCount">8</strong> vehicle leads</span>
+                <span id="activeFilterLabel">All Categories</span>
+            </div>
+        </div>
+
+        <!-- Leads Card Grid -->
+        <div class="leads-grid" id="leadsGrid">
+            
+        <div class="lead-card" data-segment="ev_solar_home" data-search="305ev1 rivian r1t 2022 pickup ev_solar_home 7fctgaal***000001 brickell financial district electric commuter">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">305EV1</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">EV_SOLAR_HOME</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2022</span>
+                <span class="title-make-model">RIVIAN R1T</span>
+                <span class="title-body">(Pickup)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">Quad-Motor Electric</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">AWD / Electric</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">7FCTGAAL***000001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:18</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Brickell financial district electric commuter</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Home Level 2 EV charging station installation & solar power offset package')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Home Level 2 EV charging station installation & solar power offset package"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="performance_detail" data-search="gator1 ford mustang 2021 coupe performance_detail 1fa6p8cf***100001 gainesville campus tailgate pickup">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">GATOR1</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">PERFORMANCE_DETAIL</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2021</span>
+                <span class="title-make-model">FORD MUSTANG</span>
+                <span class="title-body">(Coupe)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">5L V8 (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">RWD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">1FA6P8CF***100001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:18</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Gainesville campus tailgate pickup</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Ceramic coating paint protection & multi-stage precision performance detailing')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Ceramic coating paint protection & multi-stage precision performance detailing"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="offroad_accessory" data-search="mia305 jeep wrangler 2018 suv offroad_accessory 1c4hjxdg***000001 wynwood art district utility vehicle">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">MIA305</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">OFFROAD_ACCESSORY</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2018</span>
+                <span class="title-make-model">JEEP WRANGLER</span>
+                <span class="title-body">(SUV)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">3.6L V6 (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">4WD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">1C4HJXDG***000001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:17</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Wynwood Art District utility vehicle</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Off-road LED lighting systems, armor protection & suspension lift packages')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Off-road LED lighting systems, armor protection & suspension lift packages"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="ev_solar_home" data-search="sunshn tesla model y 2023 suv ev_solar_home 7saygdee***000001 tampa ev supercharger bay">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">SUNSHN</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">EV_SOLAR_HOME</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2023</span>
+                <span class="title-make-model">TESLA MODEL Y</span>
+                <span class="title-body">(SUV)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">Dual Motor Electric</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">AWD / Electric</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">7SAYGDEE***000001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:16</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Tampa EV supercharger bay</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Home Level 2 EV charging station installation & solar power offset package')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Home Level 2 EV charging station installation & solar power offset package"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="performance_detail" data-search="flfast porsche 911 2022 coupe performance_detail wp0aa2a9***200001 turnpike rest stop high performance coupe">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">FLFAST</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">PERFORMANCE_DETAIL</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2022</span>
+                <span class="title-make-model">PORSCHE 911</span>
+                <span class="title-body">(Coupe)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">3.0L 6-Cyl (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">RWD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">WP0AA2A9***200001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:16</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Turnpike rest stop high performance coupe</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Ceramic coating paint protection & multi-stage precision performance detailing')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Ceramic coating paint protection & multi-stage precision performance detailing"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="commercial_fleet" data-search="xyz789 chevrolet silverado 2019 pickup commercial_fleet 1gcuyded***000001 orlando distribution hub logistics vehicle">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">XYZ789</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">COMMERCIAL_FLEET</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2019</span>
+                <span class="title-make-model">CHEVROLET SILVERADO</span>
+                <span class="title-body">(Pickup)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">5.3L 8-Cyl (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">4WD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">1GCUYDED***000001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:15</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Orlando distribution hub logistics vehicle</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Commercial fleet preventive maintenance agreements & heavy-duty upfit solutions')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Commercial fleet preventive maintenance agreements & heavy-duty upfit solutions"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="extended_warranty_service" data-search="abc123 toyota camry 2020 sedan extended_warranty_service 4t1b11hk***000001 south beach ocean drive cruiser">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">ABC123</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">EXTENDED_WARRANTY_SERVICE</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2020</span>
+                <span class="title-make-model">TOYOTA CAMRY</span>
+                <span class="title-body">(Sedan)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">2.5L I4 (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">FWD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">4T1B11HK***000001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:14</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> South Beach ocean drive cruiser</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Extended mechanical protection warranty, comprehensive fluid exchange & tire service')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Extended mechanical protection warranty, comprehensive fluid exchange & tire service"</div>
+            </div>
+        </div>
+        
+
+        <div class="lead-card" data-segment="commercial_fleet" data-search="76bcde ford f-150 2021 pickup commercial_fleet 1ftfw1e8***a00001 commercial fleet vehicle spot near port of miami">
+            <div class="card-header">
+                <div class="fl-plate-badge">
+                    <div class="fl-plate-header">FLORIDA</div>
+                    <div class="fl-plate-number">76BCDE</div>
+                    <div class="fl-plate-footer">SUNSHINE STATE</div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-segment">COMMERCIAL_FLEET</span>
+                    <span class="badge badge-sightings">👁️ 1 sighting</span>
+                    <span class="badge badge-confidence">87% ALPR Conf</span>
+                </div>
+            </div>
+            
+            <div class="vehicle-title">
+                <span class="title-year">2021</span>
+                <span class="title-make-model">FORD F-150</span>
+                <span class="title-body">(Pickup)</span>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item"><span class="spec-label">Engine:</span> <span class="spec-value">3.5L V6 Turbo (Gasoline)</span></div>
+                <div class="spec-item"><span class="spec-label">Drive / Fuel:</span> <span class="spec-value">4WD / Gasoline</span></div>
+                <div class="spec-item"><span class="spec-label">Masked VIN:</span> <span class="spec-value code-font">1FTFW1E8***A00001</span></div>
+                <div class="spec-item"><span class="spec-label">Last Seen:</span> <span class="spec-value">2026-10-19 21:51:13</span></div>
+            </div>
+
+            <div class="notes-box"><strong>Observation:</strong> Commercial fleet vehicle spot near Port of Miami</div>
+
+            <div class="pitch-container">
+                <div class="pitch-header">
+                    <span class="pitch-tag">⚡ TAILORED OUTREACH PITCH</span>
+                    <button class="btn-copy" onclick="copyPitch(this, 'Commercial fleet preventive maintenance agreements & heavy-duty upfit solutions')">
+                        <span class="btn-text">📋 Copy Pitch</span>
+                    </button>
+                </div>
+                <div class="pitch-text">"Commercial fleet preventive maintenance agreements & heavy-duty upfit solutions"</div>
+            </div>
+        </div>
+        
+            <div class="no-leads" id="noLeadsState">
+                <h3>No vehicle leads found matching your criteria.</h3>
+                <p>Try clearing your search query or switching segment filters.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+
+        function filterSegment(segment, element) {
+            currentFilter = segment.toLowerCase();
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            if (element) {
+                element.classList.add('active');
+            }
+            document.getElementById('activeFilterLabel').innerText = 
+                currentFilter === 'all' ? 'All Categories' : 'Segment: ' + segment;
+            handleSearch();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.lead-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const cardSegment = card.getAttribute('data-segment') || '';
+                const cardSearch = card.getAttribute('data-search') || '';
+
+                const matchesSegment = (currentFilter === 'all') || (cardSegment === currentFilter);
+                const matchesQuery = !query || cardSearch.includes(query);
+
+                if (matchesSegment && matchesQuery) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('visibleCount').innerText = visibleCount;
+            const noLeads = document.getElementById('noLeadsState');
+            if (noLeads) {
+                noLeads.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        function copyPitch(btn, text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopiedFeedback(btn);
+                }).catch(err => {
+                    fallbackCopy(btn, text);
+                });
+            } else {
+                fallbackCopy(btn, text);
+            }
+        }
+
+        function fallbackCopy(btn, text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showCopiedFeedback(btn);
+            } catch (e) {
+                console.error('Could not copy pitch', e);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopiedFeedback(btn) {
+            const btnText = btn.querySelector('.btn-text');
+            const originalText = btnText ? btnText.innerText : btn.innerText;
+            btn.classList.add('copied');
+            if (btnText) btnText.innerText = '✅ Copied!';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                if (btnText) btnText.innerText = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
