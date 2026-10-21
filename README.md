@@ -1,8 +1,25 @@
 # PlateHound 🐾🚗
 
+PlateHound is a Python command-line prototype for developers and homelab tinkerers: give it a Florida plate as text or an image, and it prints a vehicle spec card, a sales segment and a pitch, then saves the lead to a local SQLite file you can filter and export.
+
+[![PlateHound explainer video](docs/explainer/poster.png)](https://nojuannobody.github.io/platehound/explainer/explainer.mp4)
+
+[▶ Watch the 72-second explainer](https://nojuannobody.github.io/platehound/explainer/explainer.mp4) · [Read the one-page explainer](https://nojuannobody.github.io/platehound/explainer/)
+
+**How it works for you**
+
+1. Run `generate-plates` to draw 8 synthetic Florida-style test plates (or type a plate with `scan`).
+2. Run `scan-image samples/plates/SUNSHN.png`: it reads the plate, cleans it and checks it against Florida plate patterns.
+3. For the 8 sample plates, a VIN stored in the code is decoded by the public NHTSA vPIC API into make, model, year, body and engine. Any other plate gets a placeholder vehicle.
+4. Rules pick one of 5 lead segments and a fixed pitch line.
+5. The lead is saved to `platehound_leads.db`; scanning the same plate again adds a sighting.
+6. Use `list`, `search`, `stats`, and `export --format html|csv|json` to review and share the leads.
+
+> **Status:** working prototype. Real vehicle specs exist only for the 8 built-in sample plates; there is no real plate-to-vehicle or owner lookup. Without the `tesseract` binary installed, `scan-image` reads the plate text stored in the PNG's metadata (or the filename), not the pixels. Use synthetic plates or plates you own.
+
 **Open-Source Florida ALPR, Public Vehicle Specs Enrichment & Homelab Outreach Leads Engine**
 
-PlateHound reads Florida license plate strings or images through a modular open-source ALPR pipeline (YOLOv8-compatible ROI detector + Tesseract OCR & context-aware confusion normalization), enriches each plate via live **NHTSA vPIC** and public vehicle spec APIs (`make`, `model`, `year`, `body_class`, `engine_info`, `drive_type`, `fuel_type`, `vin_masked`), and indexes actionable outreach leads into a local SQLite database with zero Personally Identifiable Information (PII).
+PlateHound reads Florida license plate strings or images through a modular open-source ALPR pipeline (plate box from PNG metadata or a brightness heuristic — no YOLO model is bundled — plus optional Tesseract OCR & context-aware confusion normalization), enriches the 8 built-in sample plates via live **NHTSA vPIC** (VIN decode of a VIN stored in the code; other plates get a placeholder vehicle) (`make`, `model`, `year`, `body_class`, `engine_info`, `drive_type`, `fuel_type`, `vin_masked`), and indexes actionable outreach leads into a local SQLite database without owner data (note: the plate text and your free-text `--note` are stored unencrypted, which may count as personal data where you live).
 
 ---
 
